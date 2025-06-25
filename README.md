@@ -33,10 +33,10 @@ graph TD
         B -- 1. Simpan File Mentah --> C[Object Storage <br> (MinIO/S3)]
         B -- 2. Buat Task Record --> D{PostgreSQL DB}
         B -- 3. Mulai Background Task --> E(Hybrid OCR Processor)
-        
+
         E -- 4. Proses Dokumen --> E
         E -- 5. Simpan Hasil OCR (JSON) --> D
-        
+
         subgraph Semantic Indexing
             E -- 6. Ekstrak Teks --> F(Embedding Model)
             F -- 7. Hasilkan Vektor --> G[Vector Database <br> (ChromaDB)]
@@ -146,4 +146,4 @@ Silakan lihat `CONTRIBUTING.md` (akan datang) untuk panduan lebih lanjut dan gun
 
 ## 📄 Lisensi
 
-Proyek ini dilisensikan di bawah Lisensi Apache 2.0. Lihat file LICENSE untuk detail lengkap.
+Proyek ini dilisensikan di bawah Lisensi Apache 2.0, yang memberikan kebebasan untuk menggunakan, memodifikasi, dan mendistribusikan perangkat lunak dengan persyaratan tertentu. Untuk informasi rinci tentang hak dan batasan penggunaan, silakan merujuk pada file LICENSE yang disertakan dalam repositori.

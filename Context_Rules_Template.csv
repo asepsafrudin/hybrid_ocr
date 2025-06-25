@@ -1,0 +1,22 @@
+Rule_ID,Rule_Name,Trigger_Pattern,Context_Window,Validation_Logic,Action_Type,Action_Value,Priority,Enabled,Language,Description,Examples
+1,Date_Year_Validation,\d{4},date_context,year >= 1900 and year <= 2030,replace,auto_correct_year,1,TRUE,ANY,Validate year in date context,9025->2025 in date
+2,Month_Name_Context,\b\w+\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember),date_context,month_name in indonesian_months,boost_confidence,0.3,1,TRUE,ID,Boost confidence for Indonesian months,5 Februari
+3,Case_Number_Format,\d+\.\d+\.\d+/\d+/\w+,legal_document,matches_legal_format,boost_confidence,0.25,1,TRUE,ANY,Legal case number format,100.4.3/32/PUU
+4,Phone_Number_Format,\+?62\d{8,12},contact_info,valid_indonesian_phone,validate_format,phone_format,2,TRUE,ANY,Indonesian phone number format,+62812345678
+5,NIK_Validation,\d{16},id_document,length == 16 and all_digits,validate_format,nik_format,1,TRUE,ANY,Indonesian ID number validation,1234567890123456
+6,Currency_Format,Rp\.?\s*\d+,financial_context,starts_with_rp,format_currency,currency_format,2,TRUE,ID,Indonesian currency format,Rp. 100.000
+7,Address_Validation,Jl\.|Jalan,address_context,contains_street_indicator,boost_confidence,0.2,3,TRUE,ID,Street address validation,Jl. Sudirman
+8,Name_Title_Context,(Dr\.|Prof\.|H\.|Hj\.)\s+\w+,name_context,has_title_prefix,boost_confidence,0.2,2,TRUE,ID,Indonesian name titles,Dr. Ahmad
+9,Institution_Name,Universitas|Kementerian|Dinas,official_context,is_institution,boost_confidence,0.25,2,TRUE,ID,Government/academic institutions,Universitas Indonesia
+10,Time_Format,\d{1,2}:\d{2},time_context,valid_time_format,validate_format,time_format,3,TRUE,ANY,Time format validation,14:30
+11,Percentage_Format,\d+%,numeric_context,ends_with_percent,format_number,percentage_format,3,TRUE,ANY,Percentage format,85%
+12,Email_Format,\w+@\w+\.\w+,contact_info,contains_at_and_dot,validate_format,email_format,2,TRUE,ANY,Email address format,user@domain.com
+13,Website_Format,www\.\w+\.\w+,contact_info,starts_with_www,validate_format,url_format,3,TRUE,ANY,Website URL format,www.example.com
+14,Postal_Code,\d{5},address_context,length == 5 and all_digits,validate_format,postal_format,3,TRUE,ANY,Indonesian postal code,12345
+15,License_Plate,[A-Z]{1,2}\s*\d{1,4}\s*[A-Z]{1,3},vehicle_info,matches_plate_format,validate_format,plate_format,3,TRUE,ANY,Vehicle license plate,B 1234 CD
+16,Official_Document_Number,\d+(\.\d+)*(/\d+)?/[A-Z]+,official_document,matches_official_number_format,boost_confidence,0.25,1,TRUE,ANY,Official document number format,100.3.3/1098/BPD
+17,Regulation_Reference,(Undang-Undang|Peraturan Pemerintah|Peraturan Menteri)\s+Nomor\s+\d+\s+Tahun\s+\d{4},legal_context,matches_regulation_format,boost_confidence,0.2,2,TRUE,ID,Indonesian legal regulation reference,Undang-Undang Nomor 23 Tahun 2007
+18,Hierarchical_List,\d+\.\s+\w+\s+[a-z]\.\s+\w+,list_context,matches_hierarchical_list,validate_format,hierarchical_list_format,2,TRUE,ANY,Hierarchical numbered list format,1. Gubernur Aceh a. Bupati Bireuen
+19,ESign_Note,ditandatangani\s+secara\s+elektronik,official_document,contains_esign_keyword,boost_confidence,0.2,3,TRUE,ID,Electronic signature note detection,dokumen ini telah ditandatangani secara elektronik
+20,Conformity_Note,Salinan\s+sesuai\s+dengan\s+aslinya,official_document,contains_conformity_keyword,boost_confidence,0.2,3,TRUE,ID,Conformity note detection,Salinan sesuai dengan aslinya Kepala Biro Hukum
+21,Event_Schedule,(hari|tanggal|pukul|tempat):\s+\w+,schedule_context,matches_schedule_format,validate_format,schedule_format,3,TRUE,ID,Event schedule format validation,hari: Jumat

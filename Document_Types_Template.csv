@@ -1,0 +1,14 @@
+Document_Type,Keywords,Layout_Indicators,OCR_Engine_Priority,Preprocessing_Profile,Confidence_Threshold,Language_Mix,Priority,Enabled,Description,Sample_Patterns
+Legal_Constitutional,"Mahkamah,Konstitusi,Putusan,PUU",header_center_logo,easyocr_tesseract,legal_document,0.25,ID_EN,1,TRUE,Constitutional court documents,xxx/PUU/xx/xxxx
+Legal_General,"Pengadilan,Hakim,Terdakwa,Jaksa",formal_letterhead,tesseract_easyocr,legal_document,0.3,ID_EN,2,TRUE,General court documents,xxx/Pdt.G/xxxx/xx
+Business_Invoice,"Invoice,Faktur,PT,CV,NPWP",company_header,tesseract_paddle,business_document,0.4,ID_EN,3,TRUE,Business invoices and receipts,No.xxx/INV/xx/xx
+Business_Contract,"Kontrak,Perjanjian,Pihak,Pasal",formal_layout,easyocr_tesseract,business_document,0.35,ID_EN,3,TRUE,Business contracts,Kontrak No.xxx
+Academic_Certificate,"Universitas,Diploma,Sarjana,IPK",academic_seal,tesseract_easyocr,academic_document,0.3,ID_EN,4,TRUE,Academic certificates,No.Ijazah:xxx
+Personal_ID,"KTP,NIK,Tempat Lahir,Alamat",id_card_layout,easyocr_paddle,id_document,0.25,ID,5,TRUE,Personal identification,NIK:xxxxxxxxxxxx
+Medical_Report,"Rumah Sakit,Dokter,Diagnosa,Resep",medical_header,tesseract_easyocr,medical_document,0.35,ID_EN,4,TRUE,Medical documents,RM.No.xxx
+Financial_Statement,"Laporan,Keuangan,Neraca,Rugi",financial_table,paddle_tesseract,financial_document,0.4,ID_EN,3,TRUE,Financial reports,Periode:xxx
+Government_Letter,"Kementerian,Dinas,Surat,Nomor",official_letterhead,tesseract_easyocr,government_document,0.3,ID,2,TRUE,General government correspondence,No.xxx/xx/xx
+Form_Application,"Permohonan,Formulir,Nama,Alamat",form_fields,easyocr_tesseract,form_document,0.25,ID,4,TRUE,Application forms,Form No.xxx
+Government_Surat_Edaran,"Surat Edaran,Menteri,Tembusan,Ditetapkan,Peraturan",official_letterhead,tesseract_easyocr,government_document,0.25,ID,2,TRUE,Government circular letters,No.xxx/xx/xx
+Government_Undangan,"Undangan,Rapat,Pukul,Tempat,Hari,Kontak",event_schedule,tesseract_easyocr,government_document,0.25,ID,2,TRUE,Official government invitations,No.xxx/xx/xx
+Government_Lampiran,"Lampiran,Daftar,Tabel,Salinan sesuai",numbered_list,tesseract_paddle,government_document,0.25,ID,3,TRUE,Attachments to government documents,LAMPIRAN x SURAT EDARAN

@@ -1,0 +1,28 @@
+services:
+  # Layanan untuk aplikasi FastAPI
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # Sinkronisasi kode lokal dengan container untuk development
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - redis
+
+  # Layanan untuk database PostgreSQL
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+  # Layanan untuk Redis (digunakan oleh Celery)
+  redis:
+    image: redis:6-alpine
+
+volumes:
+  postgres_data:

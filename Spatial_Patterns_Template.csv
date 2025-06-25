@@ -1,0 +1,46 @@
+Pattern_ID,Region_Name,Position_Type,X_Range,Y_Range,Width_Range,Height_Range,Content_Type,Text_Orientation,Font_Size_Range,Confidence_Boost,OCR_Config,Priority,Enabled,Description,Document_Type
+1,Document_Date,top_right,0.7-1.0,0.0-0.2,0.15-0.3,0.05-0.1,date,horizontal,small-medium,0.2,printed,1,TRUE,Date in top right corner (printed),General
+2,Document_Number,top_right,0.6-1.0,0.1-0.3,0.2-0.4,0.05-0.1,alphanumeric,horizontal,small,0.25,printed,1,TRUE,Document reference number (printed),General
+3,Title_Header,top_center,0.2-0.8,0.0-0.15,0.4-0.6,0.08-0.15,text,horizontal,large,0.3,printed,1,TRUE,Document title/header,General
+4,Signature_Name,bottom_left,0.0-0.4,0.8-1.0,0.2-0.4,0.05-0.12,name,horizontal,medium,0.15,printed,2,TRUE,Signature name (printed),General
+5,Signature_Title,bottom_left,0.0-0.4,0.85-1.0,0.2-0.4,0.03-0.08,title,horizontal,small,0.1,printed,3,TRUE,Signature title/position,General
+6,Page_Number,bottom_center,0.4-0.6,0.9-1.0,0.05-0.15,0.03-0.06,number,horizontal,small,0.1,printed,4,TRUE,Page numbering,General
+7,Letterhead_Logo,top_center,0.3-0.7,0.0-0.1,0.1-0.4,0.05-0.1,logo,any,any,0.05,printed,5,TRUE,Company/institution logo,General
+8,Address_Block,top_left,0.0-0.4,0.15-0.4,0.3-0.4,0.15-0.25,address,horizontal,small,0.15,printed,3,TRUE,Address information,General
+9,Table_Data,center,0.1-0.9,0.3-0.7,0.6-0.8,0.2-0.4,tabular,horizontal,small,0.2,printed,2,FALSE,Tabular data content,Laporan
+10,Footer_Info,bottom_full,0.0-1.0,0.9-1.0,0.8-1.0,0.05-0.1,mixed,horizontal,small,0.1,printed,4,TRUE,Footer information,General
+11,Margin_Notes,left_margin,0.0-0.1,0.2-0.8,0.05-0.1,0.1-0.6,notes,vertical,small,0.1,handwriting,5,FALSE,Marginal annotations,Manual
+12,Stamp_Area,bottom_right,0.7-1.0,0.7-1.0,0.15-0.3,0.15-0.3,stamp,any,medium,0.2,printed,3,TRUE,Official stamp area,General
+13,Reference_Line,top_left,0.0-0.5,0.1-0.25,0.3-0.5,0.03-0.08,reference,horizontal,small,0.15,printed,2,TRUE,Reference number line,General
+14,Subject_Label,left_aligned,0.0-0.8,0.25-0.4,0.5-0.8,0.05-0.1,subject,horizontal,medium,0.2,printed,2,TRUE,Subject/matter line,General
+15,Body_Text,center_block,0.1-0.9,0.4-0.8,0.7-0.8,0.3-0.4,paragraph,horizontal,medium,0.1,printed,3,TRUE,Main document body,General
+16,Document_Date_Handwritten,top_right,0.7-1.0,0.0-0.2,0.15-0.3,0.05-0.1,date,horizontal,small-medium,0.3,handwriting,1,TRUE,Date in top right corner (handwritten),Manual
+17,Document_Number_Handwritten,top_right,0.6-1.0,0.1-0.3,0.2-0.4,0.05-0.1,alphanumeric,horizontal,small,0.35,handwriting,1,TRUE,Document reference number (handwritten),Manual
+18,Signature_Image,bottom_left,0.0-0.4,0.8-1.0,0.2-0.4,0.05-0.12,signature,any,medium,0.15,image,2,TRUE,Electronic signature image,General
+19,Checklist_Table,center,0.2-0.8,0.3-0.7,0.5-0.7,0.2-0.4,tabular,horizontal,small,0.2,mixed,2,TRUE,Checklist table with text and marks,Disposisi
+20,Checklist_Box,center,0.2-0.8,0.3-0.7,0.05-0.1,0.05-0.1,checkbox,any,small,0.1,image,3,TRUE,Checklist box (checked/unchecked),Disposisi
+21,Disposisi_Date,bottom_left,0.0-0.4,0.9-1.0,0.15-0.3,0.05-0.1,date,horizontal,small-medium,0.2,handwriting,2,TRUE,Date in special format (e.g., 14/05 25),Disposisi
+22,Secondary_Title,top_center,0.2-0.8,0.15-0.25,0.5-0.7,0.05-0.1,text,horizontal,medium,0.2,printed,2,TRUE,Secondary title or subtitle,Surat_Edaran
+23,Tembusan,bottom_left,0.0-0.4,0.85-1.0,0.4-0.6,0.1-0.2,text,horizontal,small,0.15,printed,3,TRUE,Tembusan or CC section,Surat_Edaran
+24,Recipient_List,top_left,0.0-0.4,0.1-0.25,0.3-0.5,0.1-0.2,address,horizontal,small,0.15,printed,2,TRUE,Recipient list (e.g., Yth. Gubernur),Surat_Edaran
+25,Numbered_Text,center_block,0.1-0.9,0.25-0.4,0.7-0.8,0.1-0.2,paragraph,horizontal,medium,0.15,printed,3,TRUE,Numbered paragraphs (e.g., I, II),Lampiran
+26,Table_Four_Columns,center,0.1-0.9,0.3-0.8,0.7-0.9,0.3-0.5,tabular,horizontal,small,0.2,printed,2,TRUE,Four-column table for TTIS data,Lampiran
+27,Report_Subtitle,center_block,0.1-0.9,0.25-0.4,0.5-0.8,0.05-0.1,text,horizontal,medium,0.2,printed,2,TRUE,Report subtitles (e.g., A. Dasar Hukum),Lampiran
+28,Report_Table,center,0.1-0.9,0.4-0.8,0.7-0.9,0.2-0.4,tabular,horizontal,small,0.2,mixed,2,TRUE,Progress report table,Lampiran
+29,NIP_Signature,bottom_left,0.0-0.4,0.9-1.0,0.2-0.4,0.03-0.08,alphanumeric,horizontal,small,0.15,printed,3,TRUE,NIP below signature,Lampiran
+30,Surat_Metadata,top_left,0.0-0.5,0.15-0.3,0.4-0.6,0.1-0.2,mixed,horizontal,small,0.2,printed,2,TRUE,Surat metadata (e.g., Sifat, Lampiran, Hal),Surat_Biasa
+31,Surat_Date,top_right,0.7-1.0,0.1-0.25,0.15-0.3,0.05-0.1,date,horizontal,small-medium,0.2,printed,1,TRUE,Surat date (e.g., 23 Juni 2025),Surat_Biasa
+32,Signature_Rank,bottom_left,0.0-0.4,0.85-1.0,0.2-0.4,0.03-0.08,title,horizontal,small,0.1,printed,3,TRUE,Signature rank (e.g., Pembina Utama Madya),Surat_Biasa
+33,Event_Schedule,center_block,0.1-0.9,0.4-0.6,0.5-0.8,0.1-0.2,mixed,horizontal,medium,0.15,printed,3,TRUE,Event schedule (e.g., hari, tanggal, pukul),Undangan
+34,ESign_Note,bottom_left,0.0-0.4,0.8-1.0,0.4-0.6,0.05-0.1,text,horizontal,small,0.15,printed,3,TRUE,Electronic signature note,Undangan
+35,Invitee_List,center_block,0.1-0.9,0.3-0.8,0.7-0.9,0.4-0.6,paragraph,horizontal,medium,0.15,printed,3,TRUE,List of invitees in lampiran,Undangan
+36,Contact_Person,center_block,0.1-0.9,0.6-0.8,0.5-0.8,0.05-0.1,mixed,horizontal,medium,0.15,printed,3,TRUE,Contact person info (e.g., name, phone),Undangan
+37,Lampiran_Title,top_center,0.2-0.8,0.0-0.15,0.4-0.6,0.05-0.1,text,horizontal,medium,0.2,printed,2,TRUE,Lampiran title (e.g., Lampiran Surat Undangan),Undangan
+38,Establishment_Date,bottom_left,0.0-0.4,0.75-0.9,0.4-0.6,0.05-0.1,date,horizontal,medium,0.15,printed,3,TRUE,Establishment date (e.g., Ditetapkan di Jakarta),Surat_Edaran
+39,Numbered_Recipient,top_left,0.0-0.4,0.05-0.2,0.3-0.5,0.1-0.2,address,horizontal,small,0.15,printed,2,TRUE,Numbered recipient list (e.g., 1. Gubernur),Surat_Edaran
+40,Sub_Numbered_Text,center_block,0.1-0.9,0.3-0.8,0.7-0.8,0.1-0.2,paragraph,horizontal,medium,0.15,printed,3,TRUE,Sub-numbered paragraphs (e.g., 2a, 2b),Surat_Edaran
+41,Regulation_Reference,center_block,0.1-0.9,0.4-0.8,0.7-0.8,0.05-0.1,mixed,horizontal,medium,0.15,printed,3,TRUE,Regulation references (e.g., UU No. 23/2007),Surat_Edaran
+42,Hierarchical_List,center_block,0.1-0.9,0.3-0.8,0.7-0.9,0.3-0.5,paragraph,horizontal,medium,0.15,printed,3,TRUE,Hierarchical numbered list (e.g., 1. Gubernur, a. Bupati),Lampiran
+43,Multi_Column_Table,center,0.1-0.9,0.3-0.8,0.8-1.0,0.4-0.6,tabular,horizontal,small,0.2,printed,2,TRUE,Multi-column table (e.g., 9 columns for railway data),Lampiran
+44,Conformity_Note,bottom_left,0.0-0.4,0.85-1.0,0.3-0.5,0.05-0.1,text,horizontal,small,0.15,printed,3,TRUE,Conformity note (e.g., Salinan sesuai dengan aslinya),Lampiran
+45,Sub_List_Number,center_block,0.1-0.9,0.3-0.8,0.7-0.8,0.1-0.2,paragraph,horizontal,medium,0.15,printed,3,TRUE,Sub-list numbering (e.g., a, b, c),Lampiran

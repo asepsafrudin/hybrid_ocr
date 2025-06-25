@@ -1,0 +1,50 @@
+# Hybrid Document Processor Configuration
+
+# Processing Settings
+processing:
+  layout_confidence_threshold: 0.7
+  ocr_confidence_threshold: 0.3
+  overlap_threshold: 0.5
+
+# Feature Toggles
+features:
+  enable_layout_detection: true
+  enable_handwriting: true
+  enable_table_detection: false
+
+# Performance Settings
+performance:
+  max_workers: 4
+  batch_size: 8
+  pdf_dpi: 300
+
+# OCR Engine Settings
+ocr_engines:
+  tesseract:
+    config: "--oem 3 --psm 6"
+    languages: ["eng", "ind"]
+
+  easyocr:
+    languages: ["en", "id"]
+    gpu: false
+
+  paddle:
+    use_angle_cls: true
+    lang: "en"
+
+# Supported file formats
+supported_formats:
+  pdf: [".pdf"]
+  images: [".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"]
+
+# Output Settings
+output:
+  include_confidence_scores: true
+  include_bounding_boxes: true
+  include_metadata: true
+  text_cleaning: true
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
