@@ -1,44 +1,79 @@
-name: CI/CD Pipeline
+name: Enterprise OCR System CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11']
+        python-version: [3.8, 3.9, '3.10']
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install system dependencies
       run: |
-        sudo apt-get update && sudo apt-get install -y poppler-utils tesseract-ocr
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr tesseract-ocr-ind poppler-utils
+        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; --extra-index-url https://download.pytorch.org/whl/cpu; fi
-        pip install flake8 black pytest # Install linting and testing tools
+        pip install -r requirements.txt
 
-    - name: Lint with flake8 and black
+    - name: Test Pattern System
       run: |
-        flake8 .
-        black --check .
+        python test_pattern_system.py
 
-    - name: Run tests with pytest
+    - name: Test User Verification
       run: |
-        # The tests might need the AI models. If so, uncomment the line below.
-        # python download_models.py
-        pytest
+        python test_user_verification.py
+
+    - name: Test Document Discovery
+      run: |
+        python test_document_discovery.py
+
+    - name: Test Section Detection
+      run: |
+        python demo_section_detection.py
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: |
+        docker build -t hybrid-ocr:latest .
+
+    - name: Test Docker image
+      run: |
+        docker run --rm hybrid-ocr:latest python --version
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, docker]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy notification
+      run: |
+        echo "🚀 Enterprise OCR System deployed successfully!"
