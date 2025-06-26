@@ -1,21 +1,23 @@
 Pattern_ID,Category,Wrong_Text,Correct_Text,Context_Type,Position_Hint,Priority,Confidence_Boost,Enabled,Language,Notes,Created_Date,Last_Modified
-1,Month,Fcbruar`,Februari,date,any,1,0.2,TRUE,ID,Common handwriting error for February,2024-01-01,2024-01-01
-2,Month,Fcbruari,Februari,date,any,1,0.2,TRUE,ID,Alternative handwriting error,2024-01-01,2024-01-01
-3,Month,Januan,Januari,date,any,1,0.2,TRUE,ID,January handwriting error,2024-01-01,2024-01-01
-4,Month,Maret,Maret,date,any,3,0.1,TRUE,ID,Correct month - no change needed,2024-01-01,2024-01-01
-5,Month,Apnl,April,date,any,1,0.2,TRUE,ID,April handwriting error,2024-01-01,2024-01-01
-6,Number,io8,100,document_number,top_right,1,0.25,TRUE,ANY,Handwriting number confusion,2024-01-01,2024-01-01
-7,Number,9025,2025,year,date_context,2,0.15,TRUE,ANY,Year in date context,2024-01-01,2024-01-01
-8,Number,0,O,mixed,any,3,0.05,FALSE,ANY,Context dependent - disabled by default,2024-01-01,2024-01-01
-9,Punctuation,`,EMPTY,any,any,2,0.1,TRUE,ANY,Remove backtick artifacts,2024-01-01,2024-01-01
-10,Punctuation,~,EMPTY,any,any,2,0.1,TRUE,ANY,Remove tilde artifacts,2024-01-01,2024-01-01
-11,Punctuation,|,l,text,any,2,0.1,TRUE,ANY,Pipe to lowercase L,2024-01-01,2024-01-01
-12,Character,rn,m,text,any,2,0.1,TRUE,ANY,Common OCR character confusion,2024-01-01,2024-01-01
-13,Character,cl,d,text,any,2,0.1,TRUE,ANY,Character combination error,2024-01-01,2024-01-01
-14,Character,ii,ll,text,any,2,0.1,TRUE,ANY,Double i to double l,2024-01-01,2024-01-01
-15,Legal,Mahkamah,Mahkamah,legal_header,top_center,1,0.3,TRUE,ID,Legal document identifier,2024-01-01,2024-01-01
-16,Legal,Konstitusi,Konstitusi,legal_header,top_center,1,0.3,TRUE,ID,Constitutional court identifier,2024-01-01,2024-01-01
-17,Legal,Putusan,Putusan,legal_content,any,2,0.2,TRUE,ID,Legal decision term,2024-01-01,2024-01-01
-18,Legal,Pemohon,Pemohon,legal_content,any,2,0.2,TRUE,ID,Legal petitioner term,2024-01-01,2024-01-01
-19,Format,PUU,PUU,case_number,any,1,0.25,TRUE,ANY,Constitutional case format,2024-01-01,2024-01-01
-20,Format,/,/,case_number,any,3,0.05,TRUE,ANY,Slash in case numbers,2024-01-01,2024-01-01
+1,Month,Fcbruar`,Februari,date,any,1,0.2,True,ID,Common handwriting error for February,2024-01-01,2024-01-01
+2,Month,Fcbruari,Februari,date,any,1,0.2,True,ID,Alternative handwriting error,2024-01-01,2024-01-01
+3,Month,Januan,Januari,date,any,1,0.2,True,ID,January handwriting error,2024-01-01,2024-01-01
+4,Month,Maret,Maret,date,any,3,0.1,True,ID,Correct month - no change needed,2024-01-01,2024-01-01
+5,Month,Apnl,April,date,any,1,0.2,True,ID,April handwriting error,2024-01-01,2024-01-01
+6,Number,io8,100,document_number,top_right,1,0.25,True,ANY,Handwriting number confusion,2024-01-01,2024-01-01
+7,Number,9025,2025,year,date_context,2,0.15,True,ANY,Year in date context,2024-01-01,2024-01-01
+8,Number,0,O,mixed,any,3,0.05,False,ANY,Context dependent - disabled by default,2024-01-01,2024-01-01
+9,Punctuation,`,EMPTY,any,any,2,0.1,True,ANY,Remove backtick artifacts,2024-01-01,2024-01-01
+10,Punctuation,~,EMPTY,any,any,2,0.1,True,ANY,Remove tilde artifacts,2024-01-01,2024-01-01
+11,Punctuation,|,l,text,any,2,0.1,True,ANY,Pipe to lowercase L,2024-01-01,2024-01-01
+12,Character,rn,m,text,any,2,0.1,True,ANY,Common OCR character confusion,2024-01-01,2024-01-01
+13,Character,cl,d,text,any,2,0.1,True,ANY,Character combination error,2024-01-01,2024-01-01
+14,Character,ii,ll,text,any,2,0.1,True,ANY,Double i to double l,2024-01-01,2024-01-01
+15,Legal,Mahkamah,Mahkamah,legal_header,top_center,1,0.3,True,ID,Legal document identifier,2024-01-01,2024-01-01
+16,Legal,Konstitusi,Konstitusi,legal_header,top_center,1,0.3,True,ID,Constitutional court identifier,2024-01-01,2024-01-01
+17,Legal,Putusan,Putusan,legal_content,any,2,0.2,True,ID,Legal decision term,2024-01-01,2024-01-01
+18,Legal,Pemohon,Pemohon,legal_content,any,2,0.2,True,ID,Legal petitioner term,2024-01-01,2024-01-01
+19,Format,PUU,PUU,case_number,any,1,0.25,True,ANY,Constitutional case format,2024-01-01,2024-01-01
+20,Format,/,/,case_number,any,3,0.05,True,ANY,Slash in case numbers,2024-01-01,2024-01-01
+21,Text,io8 . 4.3/3 1/ Puu,100. 4.3/31/ PUU,document_number,,1,0.2,True,ANY,Auto-generated from user correction,2025-06-26,2025-06-26
+22,Text,io8 . 4.3/3 1/ Puu,100.4.3/32/ PUU,document_number,,1,0.2,True,ANY,Auto-generated from user correction,2025-06-26,2025-06-26

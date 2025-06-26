@@ -1,5 +1,7 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import uvicorn
 import os
 import uuid
@@ -12,6 +14,7 @@ from typing import Dict, Any
 
 # Import our hybrid processor
 from hybrid_processor import HybridProcessor, create_processor
+import fitz  # PyMuPDF for PDF handling
 from user_verification import (
     UserVerificationSystem,
     create_verification_system,
@@ -39,6 +42,9 @@ app = FastAPI(
     description="Platform cerdas untuk mengubah dokumen statis menjadi data terstruktur",
 )
 
+# Templates setup
+templates = Jinja2Templates(directory="templates")
+
 # Buat direktori uploads jika belum ada
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -47,7 +53,9 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 processor = create_processor("config.yaml")
 
 # Initialize verification system
-verification_system = create_verification_system(processor.pattern_manager, ".")
+verification_system = create_verification_system(
+    processor.pattern_manager, "."
+)
 
 # Initialize section API
 section_api = create_section_api()
@@ -69,10 +77,16 @@ async def root():
 async def process_document(file: UploadFile = File(...)):
     try:
         # Validasi file type
-        allowed_types = ["application/pdf", "image/jpeg", "image/png", "image/tiff"]
+        allowed_types = [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+        ]
         if file.content_type not in allowed_types:
             raise HTTPException(
-                status_code=400, detail=f"File type {file.content_type} tidak didukung"
+                status_code=400,
+                detail=f"File type {file.content_type} tidak didukung",
             )
 
         # Generate unique task ID
@@ -98,7 +112,9 @@ async def process_document(file: UploadFile = File(...)):
         }
 
         # Start background processing
-        asyncio.create_task(process_document_background(task_id, str(file_path)))
+        asyncio.create_task(
+            process_document_background(task_id, str(file_path))
+        )
 
         return JSONResponse(
             {
@@ -110,7 +126,9 @@ async def process_document(file: UploadFile = File(...)):
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing file: {str(e)}"
+        )
 
 
 @app.get("/health")
@@ -125,7 +143,10 @@ async def list_all_tasks():
         {
             "total_tasks": len(processing_tasks),
             "tasks": {
-                task_id: {"status": task["status"], "filename": task["filename"]}
+                task_id: {
+                    "status": task["status"],
+                    "filename": task["filename"],
+                }
                 for task_id, task in processing_tasks.items()
             },
         }
@@ -140,7 +161,9 @@ async def get_task_status(task_id: str):
         print(f"📋 Available tasks: {list(processing_tasks.keys())}")
 
         if task_id not in processing_tasks:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Task {task_id} not found"
+            )
 
         task = processing_tasks[task_id]
         response_data = {
@@ -148,7 +171,9 @@ async def get_task_status(task_id: str):
             "status": task["status"],
             "filename": task["filename"],
             "created_at": task["created_at"],
-            "result": task["result"] if task["status"] == "completed" else None,
+            "result": (
+                task["result"] if task["status"] == "completed" else None
+            ),
             "error": task["error"] if task["status"] == "failed" else None,
         }
         # Convert to JSON string with custom encoder, then parse back
@@ -166,7 +191,9 @@ async def get_processing_result(task_id: str):
         print(f"🔍 Getting results for task_id: {task_id}")
 
         if task_id not in processing_tasks:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Task {task_id} not found"
+            )
 
         task = processing_tasks[task_id]
         if task["status"] != "completed":
@@ -214,7 +241,9 @@ async def get_verification_regions(task_id: str):
     """Get regions yang perlu diverifikasi untuk task"""
     try:
         if task_id not in processing_tasks:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Task {task_id} not found"
+            )
 
         task = processing_tasks[task_id]
         if task["status"] != "completed":
@@ -222,41 +251,187 @@ async def get_verification_regions(task_id: str):
                 status_code=400, detail=f"Task not completed: {task['status']}"
             )
 
-        # Load original image
-        import cv2
+        result = task["result"]
+        regions = result.get("regions", [])
 
-        image = cv2.imread(task["file_path"])
-        if image is None:
-            raise HTTPException(status_code=500, detail="Cannot load original image")
+        # Filter regions yang perlu verifikasi (confidence < 0.5 atau handwritten)
+        verification_regions = []
+        for i, region in enumerate(regions):
+            confidence = float(region.get("confidence", 1.0))
+            region_type = region.get("region_type", "printed")
 
-        # Get verification regions
-        regions = task["result"]["regions"]
-        verification_regions = verification_system.get_regions_for_verification(
-            regions, image, task_id
+            if confidence < 0.5 or region_type == "handwritten":
+                # Convert bbox to regular Python list
+                bbox = region.get("bbox", [0, 0, 100, 100])
+                if hasattr(bbox, "tolist"):
+                    bbox = bbox.tolist()
+                bbox = [int(x) for x in bbox]
+
+                # Skip logo regions (top area, small regions with low confidence)
+                if is_logo_region(bbox, region.get("text", "")):
+                    continue
+
+                # Create cropped image from region
+                cropped_image = create_cropped_image_from_region(
+                    task["file_path"], region
+                )
+
+                verification_regions.append(
+                    {
+                        "region_id": int(i),
+                        "text": str(region.get("text", "")),
+                        "confidence": confidence,
+                        "region_type": region_type,
+                        "priority_score": float(1.0 - confidence),
+                        "cropped_image": cropped_image,
+                        "bbox": bbox,
+                    }
+                )
+
+        response_data = {
+            "task_id": task_id,
+            "total_regions": int(len(regions)),
+            "verification_regions": int(len(verification_regions)),
+            "regions": verification_regions,
+        }
+
+        # Convert to JSON string with custom encoder, then parse back
+        json_str = json.dumps(response_data, cls=NumpyEncoder)
+        return JSONResponse(json.loads(json_str))
+
+    except Exception as e:
+        print(f"Error getting verification regions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def create_cropped_image_from_region(file_path: str, region: dict):
+    """Create cropped image from region data"""
+    import base64
+    import cv2
+    import numpy as np
+    from pathlib import Path
+
+    try:
+        # Check if file exists
+        if not Path(file_path).exists():
+            return create_placeholder_image(region.get("text", "No text"))
+
+        # For PDF files, we need to convert to image first with same DPI as processing
+        if file_path.lower().endswith(".pdf"):
+            import fitz  # PyMuPDF
+
+            doc = fitz.open(file_path)
+            page = doc[0]  # Get first page
+            # Use same DPI as in processing (300 DPI)
+            mat = fitz.Matrix(300 / 72, 300 / 72)  # 300 DPI scaling
+            pix = page.get_pixmap(matrix=mat)
+            img_data = pix.tobytes("png")
+            nparr = np.frombuffer(img_data, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            doc.close()
+        else:
+            # For image files
+            img = cv2.imread(file_path)
+
+        if img is None:
+            return create_placeholder_image(region.get("text", "No text"))
+
+        # Get bbox coordinates
+        bbox = region.get("bbox", [0, 0, 100, 100])
+        x1, y1, x2, y2 = [int(coord) for coord in bbox]
+
+        # Debug info
+        print(
+            f"Debug - Text: '{region.get('text', '')}', BBox: {bbox}, Image shape: {img.shape}"
         )
 
-        return JSONResponse(
-            {
-                "task_id": task_id,
-                "total_regions": len(regions),
-                "verification_regions": len(verification_regions),
-                "regions": [
-                    {
-                        "region_id": r.region_id,
-                        "text": r.text,
-                        "confidence": r.confidence,
-                        "region_type": r.region_type,
-                        "priority_score": r.priority_score,
-                        "cropped_image": r.cropped_image_b64,
-                    }
-                    for r in verification_regions
-                ],
-            }
+        # Ensure coordinates are within image bounds
+        h, w = img.shape[:2]
+        x1 = max(0, min(x1, w - 1))
+        y1 = max(0, min(y1, h - 1))
+        x2 = max(x1 + 1, min(x2, w))
+        y2 = max(y1 + 1, min(y2, h))
+
+        # Add padding for better visibility
+        padding = 5
+        x1 = max(0, x1 - padding)
+        y1 = max(0, y1 - padding)
+        x2 = min(w, x2 + padding)
+        y2 = min(h, y2 + padding)
+
+        # Crop the region
+        cropped = img[y1:y2, x1:x2]
+
+        if cropped.size == 0:
+            return create_placeholder_image(region.get("text", "No text"))
+
+        # Resize if too small for better visibility
+        if cropped.shape[0] < 50 or cropped.shape[1] < 100:
+            scale_factor = max(50 / cropped.shape[0], 100 / cropped.shape[1])
+            new_width = int(cropped.shape[1] * scale_factor)
+            new_height = int(cropped.shape[0] * scale_factor)
+            cropped = cv2.resize(
+                cropped, (new_width, new_height), interpolation=cv2.INTER_CUBIC
+            )
+
+        # Encode to base64
+        _, buffer = cv2.imencode(".png", cropped)
+        return (
+            f"data:image/png;base64,{base64.b64encode(buffer).decode('utf-8')}"
         )
 
     except Exception as e:
-        logger.error(f"Error getting verification regions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error creating cropped image: {e}")
+        return create_placeholder_image(region.get("text", "Error"))
+
+
+def is_logo_region(bbox, text):
+    """Detect if region is part of logo based on position and characteristics"""
+    x1, y1, x2, y2 = bbox
+
+    # Logo area coordinates (top-left area of document)
+    logo_area = {"x_min": 150, "x_max": 400, "y_min": 100, "y_max": 450}
+
+    # Check if region is in logo area
+    in_logo_area = (
+        x1 >= logo_area["x_min"]
+        and x2 <= logo_area["x_max"]
+        and y1 >= logo_area["y_min"]
+        and y2 <= logo_area["y_max"]
+    )
+
+    # Logo characteristics
+    is_small_region = (x2 - x1) < 100 and (y2 - y1) < 60
+    is_symbol_text = len(text.strip()) <= 3 and any(
+        char in text for char in ["+", ";", "\x1c", "\x14"]
+    )
+
+    return in_logo_area and (is_small_region or is_symbol_text)
+
+
+def create_placeholder_image(text: str, width=200, height=80):
+    """Create placeholder image with text"""
+    import base64
+    import cv2
+    import numpy as np
+
+    # Create white background
+    img = np.ones((height, width, 3), dtype=np.uint8) * 255
+
+    # Add text
+    cv2.putText(
+        img,
+        text[:20],
+        (10, height // 2),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        (50, 50, 50),
+        1,
+    )
+
+    # Encode to base64
+    _, buffer = cv2.imencode(".png", img)
+    return f"data:image/png;base64,{base64.b64encode(buffer).decode('utf-8')}"
 
 
 @app.post("/verification/submit")
@@ -285,7 +460,7 @@ async def submit_user_correction(correction_data: dict):
         )
 
     except Exception as e:
-        logger.error(f"Error processing user correction: {e}")
+        print(f"Error processing user correction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -304,7 +479,9 @@ async def get_document_type_suggestions(task_id: str):
     """Get ML-suggested document types untuk task"""
     try:
         if task_id not in processing_tasks:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Task {task_id} not found"
+            )
 
         task = processing_tasks[task_id]
         if task["status"] != "completed":
@@ -351,7 +528,9 @@ async def validate_document_type(validation_data: dict):
             keywords=validation_data.get("keywords", []),
         )
 
-        success = verification_system.process_document_type_validation(validation)
+        success = verification_system.process_document_type_validation(
+            validation
+        )
 
         return JSONResponse(
             {
@@ -379,7 +558,9 @@ async def list_document_types():
                 {
                     "type": row["Document_Type"],
                     "keywords": (
-                        row["Keywords"].split(",") if pd.notna(row["Keywords"]) else []
+                        row["Keywords"].split(",")
+                        if pd.notna(row["Keywords"])
+                        else []
                     ),
                     "description": row.get("Description", ""),
                     "enabled": row.get("Enabled", True),
@@ -395,7 +576,9 @@ async def get_document_sections(task_id: str):
     """Get detected sections untuk multi-page document"""
     try:
         if task_id not in processing_tasks:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Task {task_id} not found"
+            )
 
         task = processing_tasks[task_id]
         if task["status"] != "completed":
@@ -407,7 +590,11 @@ async def get_document_sections(task_id: str):
         sections = metadata.get("document_sections", [])
 
         return JSONResponse(
-            {"task_id": task_id, "total_sections": len(sections), "sections": sections}
+            {
+                "task_id": task_id,
+                "total_sections": len(sections),
+                "sections": sections,
+            }
         )
 
     except Exception as e:
@@ -419,7 +606,9 @@ async def get_specific_section(task_id: str, section_type: str):
     """Get specific section content dari document"""
     try:
         if task_id not in processing_tasks:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Task {task_id} not found"
+            )
 
         task = processing_tasks[task_id]
         if task["status"] != "completed":
@@ -434,11 +623,17 @@ async def get_specific_section(task_id: str, section_type: str):
         # In real implementation, you'd reconstruct pages from regions
         pages_content = [result["text_content"]]  # Simplified for demo
 
-        section_content = section_api.get_section_content(pages_content, section_type)
+        section_content = section_api.get_section_content(
+            pages_content, section_type
+        )
 
         if section_content:
             return JSONResponse(
-                {"task_id": task_id, "section_found": True, "section": section_content}
+                {
+                    "task_id": task_id,
+                    "section_found": True,
+                    "section": section_content,
+                }
             )
         else:
             return JSONResponse(
@@ -451,6 +646,34 @@ async def get_specific_section(task_id: str, section_type: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint untuk monitoring"""
+    try:
+        # Check pattern manager
+        stats = processor.pattern_manager.get_pattern_stats()
+
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0",
+            "patterns_loaded": stats["ocr_patterns"],
+            "system": "Enterprise OCR System",
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=503, detail=f"Health check failed: {str(e)}"
+        )
+
+
+@app.get("/verification", response_class=HTMLResponse)
+async def verification_interface(request: Request):
+    """Serve verification HTML interface"""
+    return templates.TemplateResponse(
+        "verification_enhanced.html", {"request": request}
+    )
 
 
 @app.get("/docs")

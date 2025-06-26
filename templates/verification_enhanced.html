@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Verification System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .region-card {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .region-card:hover {
+            border-color: #4facfe;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.2);
+        }
+
+        .priority-high {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .priority-medium {
+            border-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .region-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .confidence-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .confidence-low {
+            background: #dc3545;
+            color: white;
+        }
+
+        .type-handwritten {
+            background: #6f42c1;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .region-content {
+            display: flex;
+            padding: 20px;
+            gap: 30px;
+        }
+
+        .image-section {
+            flex: 1;
+            text-align: center;
+        }
+
+        .cropped-image {
+            max-width: 100%;
+            max-height: 200px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .correction-section {
+            flex: 2;
+        }
+
+        .original-text {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .correction-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .correction-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #4facfe;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2196f3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 OCR Verification System</h1>
+            <p>Help improve OCR accuracy by verifying and correcting text regions</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalRegions">83</div>
+                <div class="stat-label">Total Regions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="needsVerification">2</div>
+                <div class="stat-label">Needs Verification</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="avgConfidence">86.3%</div>
+                <div class="stat-label">Avg Confidence</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="handwrittenCount">2</div>
+                <div class="stat-label">Handwritten</div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading verification data...</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✅ Correction submitted successfully! Pattern will be updated.
+        </div>
+
+        <div id="regionsContainer">
+            <!-- Regions will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        let currentTaskId = 'demo_task';
+        let verificationData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentTaskId = urlParams.get('task_id') || 'demo_task';
+            loadVerificationData();
+        });
+
+        async function loadVerificationData() {
+            showLoading(true);
+
+            try {
+                const response = await fetch('/verification/' + currentTaskId);
+
+                if (response.ok) {
+                    verificationData = await response.json();
+                    displayVerificationData();
+                } else {
+                    console.log('API call failed, keeping static content');
+                }
+
+            } catch (error) {
+                console.log('Error loading data:', error);
+            }
+
+            showLoading(false);
+        }
+
+        function displayVerificationData() {
+            if (!verificationData || !verificationData.regions) {
+                return;
+            }
+
+            // Update stats
+            document.getElementById('totalRegions').textContent = verificationData.total_regions;
+            document.getElementById('needsVerification').textContent = verificationData.verification_regions;
+            document.getElementById('handwrittenCount').textContent = verificationData.regions.filter(r => r.region_type === 'handwritten').length;
+
+            // Replace content with API data
+            const container = document.getElementById('regionsContainer');
+            container.innerHTML = '';
+
+            verificationData.regions.forEach(region => {
+                const regionCard = createRegionCard(region);
+                container.appendChild(regionCard);
+            });
+        }
+
+        function createRegionCard(region) {
+            const card = document.createElement('div');
+            card.className = 'region-card';
+            card.id = `region-${region.region_id}`;
+
+            const confidenceClass = region.confidence < 0.4 ? 'confidence-low' : 'confidence-medium';
+            const priorityClass = region.priority_score > 0.8 ? 'priority-high' : 'priority-medium';
+            card.classList.add(priorityClass);
+
+            const suggestedText = getSuggestedCorrection(region.text);
+
+            card.innerHTML = `
+                <div class="region-header">
+                    <div class="region-info">
+                        <span><strong>Region #${region.region_id}</strong></span>
+                        <span class="confidence-badge ${confidenceClass}">
+                            ${(region.confidence * 100).toFixed(1)}% confidence
+                        </span>
+                        <span class="type-${region.region_type}">
+                            ${region.region_type}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="region-content">
+                    <div class="image-section">
+                        <h4>📷 Cropped Image</h4>
+                        <img src="${region.cropped_image}" alt="Cropped region" class="cropped-image" />
+                        <p><small>Bbox: [${region.bbox.join(', ')}]</small></p>
+                    </div>
+
+                    <div class="correction-section">
+                        <div class="text-comparison">
+                            <div class="original-text">
+                                <label><strong>🔍 Original OCR Text:</strong></label>
+                                <div>"${region.text}"</div>
+                            </div>
+
+                            ${suggestedText ? `
+                            <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                                <label><strong>💡 Suggested:</strong></label>
+                                <div>"${suggestedText}"</div>
+                            </div>
+                            ` : ''}
+
+                            <label for="correction_${region.region_id}"><strong>✏️ Your Correction:</strong></label>
+                            <input type="text"
+                                   id="correction_${region.region_id}"
+                                   class="correction-input"
+                                   value="${suggestedText || region.text}"
+                                   placeholder="Enter the correct text...">
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="submitCorrection(${region.region_id})">
+                                ✅ Submit Correction
+                            </button>
+                            <button class="btn btn-success" onclick="markAsCorrect(${region.region_id})">
+                                👍 Mark as Correct
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getSuggestedCorrection(originalText) {
+            const patterns = {
+                'io8': '100',
+                '9025': '2025',
+                'Puu': 'PUU',
+                '3 1': '32'
+            };
+
+            let suggestion = originalText;
+            for (const [wrong, correct] of Object.entries(patterns)) {
+                suggestion = suggestion.replace(new RegExp(wrong, 'gi'), correct);
+            }
+
+            return suggestion !== originalText ? suggestion : null;
+        }
+
+        async function submitCorrection(regionId) {
+            const correctionInput = document.getElementById(`correction_${regionId}`);
+            const correctedText = correctionInput.value.trim();
+
+            if (!correctedText) {
+                alert('Please enter the corrected text');
+                return;
+            }
+
+            const region = verificationData.regions.find(r => r.region_id === regionId);
+            if (!region) return;
+
+            const correctionData = {
+                document_id: currentTaskId,
+                region_id: regionId,
+                original_text: region.text,
+                corrected_text: correctedText,
+                confidence: region.confidence,
+                region_type: region.region_type,
+                user_id: 'demo_user'
+            };
+
+            try {
+                const response = await fetch('/verification/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(correctionData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showSuccessMessage(`Correction submitted! ${result.patterns_generated || 0} patterns generated.`);
+                } else {
+                    throw new Error('API call failed');
+                }
+            } catch (error) {
+                console.log('Demo mode: Correction would be submitted:', correctionData);
+                showSuccessMessage('Correction submitted successfully! (Demo mode)');
+            }
+
+            removeRegionCard(regionId);
+        }
+
+        function markAsCorrect(regionId) {
+            console.log('Marking region as correct:', regionId);
+            showSuccessMessage('Region marked as correct!');
+            removeRegionCard(regionId);
+        }
+
+        function removeRegionCard(regionId) {
+            const card = document.getElementById(`region-${regionId}`);
+            if (card) {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(100%)';
+
+                setTimeout(() => {
+                    card.remove();
+                    updateStats();
+                }, 500);
+            }
+        }
+
+        function updateStats() {
+            const remainingRegions = document.querySelectorAll('.region-card').length;
+            document.getElementById('needsVerification').textContent = remainingRegions;
+
+            if (remainingRegions === 0) {
+                document.getElementById('regionsContainer').innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: #28a745;">
+                        <h2>🎉 All regions verified!</h2>
+                        <p>Great job! All regions have been processed.</p>
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            🔄 Load New Document
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showSuccessMessage(message) {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

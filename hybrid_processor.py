@@ -25,8 +25,14 @@ from paddleocr import PaddleOCR
 
 # Pattern management
 from pattern_manager import PatternManager, create_pattern_manager
-from document_type_discovery import DocumentTypeDiscovery, create_document_discovery
-from document_section_detector import DocumentSectionDetector, create_section_detector
+from document_type_discovery import (
+    DocumentTypeDiscovery,
+    create_document_discovery,
+)
+from document_section_detector import (
+    DocumentSectionDetector,
+    create_section_detector,
+)
 
 # Layout detection (placeholder for future implementation)
 # from transformers import pipeline
@@ -106,7 +112,11 @@ class HybridProcessor:
                     "gpu": False,
                     "paragraph": False,  # Better for mixed content
                 },
-                "paddle": {"use_angle_cls": True, "lang": "en", "show_log": False},
+                "paddle": {
+                    "use_angle_cls": True,
+                    "lang": "en",
+                    "show_log": False,
+                },
             },
             "preprocessing": {
                 "enhance_handwriting": True,
@@ -126,8 +136,12 @@ class HybridProcessor:
         """Inisialisasi semua OCR engines"""
         try:
             # Get config values
-            easyocr_config = self.config.get("ocr_engines", {}).get("easyocr", {})
-            paddle_config = self.config.get("ocr_engines", {}).get("paddle", {})
+            easyocr_config = self.config.get("ocr_engines", {}).get(
+                "easyocr", {}
+            )
+            paddle_config = self.config.get("ocr_engines", {}).get(
+                "paddle", {}
+            )
 
             # EasyOCR
             self.easyocr_reader = easyocr.Reader(
@@ -187,7 +201,9 @@ class HybridProcessor:
 
                 # Layout detection dan region-based processing
                 print(f"🧠 Running OCR engines...")
-                if self.config.get("features", {}).get("enable_layout_detection", True):
+                if self.config.get("features", {}).get(
+                    "enable_layout_detection", True
+                ):
                     regions = self._process_with_layout_detection(image)
                 else:
                     regions = self._process_dual_layer(image)
@@ -201,16 +217,20 @@ class HybridProcessor:
             # Step 4: Document type detection with ML discovery
             print(f"🔍 Detecting document type...")
             combined_text = self._merge_text_results(all_text)
-            self.detected_document_type = self.pattern_manager.detect_document_type(
-                combined_text
+            self.detected_document_type = (
+                self.pattern_manager.detect_document_type(combined_text)
             )
 
             # ML Auto-discovery for new document types
             if self.detected_document_type == "General":
                 print(f"🤖 Running ML auto-discovery...")
-                metadata = self._generate_metadata(file_path, len(images), all_regions)
-                self.document_type_candidate = self.document_discovery.analyze_document(
-                    combined_text, metadata
+                metadata = self._generate_metadata(
+                    file_path, len(images), all_regions
+                )
+                self.document_type_candidate = (
+                    self.document_discovery.analyze_document(
+                        combined_text, metadata
+                    )
                 )
                 if self.document_type_candidate:
                     print(
@@ -235,10 +255,14 @@ class HybridProcessor:
             # Step 5: Smart merging dan post-processing with patterns
             print(f"🔧 Post-processing with patterns...")
             final_text = self._post_process_text_with_patterns(combined_text)
-            print(f"✅ Processing completed! Text length: {len(final_text)} chars")
+            print(
+                f"✅ Processing completed! Text length: {len(final_text)} chars"
+            )
 
             # Step 5: Generate metadata
-            metadata = self._generate_metadata(file_path, len(images), all_regions)
+            metadata = self._generate_metadata(
+                file_path, len(images), all_regions
+            )
             if self.document_type_candidate:
                 metadata["suggested_document_type"] = {
                     "type": self.document_type_candidate.suggested_type,
@@ -288,7 +312,9 @@ class HybridProcessor:
         else:
             return FileType.UNSUPPORTED
 
-    def _prepare_images(self, file_path: str, file_type: FileType) -> List[np.ndarray]:
+    def _prepare_images(
+        self, file_path: str, file_type: FileType
+    ) -> List[np.ndarray]:
         """Konversi file ke format gambar untuk pemrosesan"""
         images = []
 
@@ -308,13 +334,17 @@ class HybridProcessor:
 
         return images
 
-    def _process_with_layout_detection(self, image: np.ndarray) -> List[TextRegion]:
+    def _process_with_layout_detection(
+        self, image: np.ndarray
+    ) -> List[TextRegion]:
         """
         Proses gambar dengan layout detection
         TODO: Implementasi layout detection model (LayoutLMv3/YOLO)
         Sementara fallback ke dual-layer processing
         """
-        logger.info("Layout detection not yet implemented, using dual-layer processing")
+        logger.info(
+            "Layout detection not yet implemented, using dual-layer processing"
+        )
         return self._process_dual_layer(image)
 
     def _process_dual_layer(self, image: np.ndarray) -> List[TextRegion]:
@@ -334,13 +364,17 @@ class HybridProcessor:
         }
 
         # Smart merging hasil OCR
-        merged_regions = self._smart_merge_ocr_results(ocr_results, image.shape)
+        merged_regions = self._smart_merge_ocr_results(
+            ocr_results, image.shape
+        )
 
         return merged_regions
 
     def _preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Preprocessing gambar untuk meningkatkan kualitas OCR"""
-        if not self.config.get("preprocessing", {}).get("enhance_handwriting", True):
+        if not self.config.get("preprocessing", {}).get(
+            "enhance_handwriting", True
+        ):
             return image
 
         processed = image.copy()
@@ -355,15 +389,19 @@ class HybridProcessor:
             processed = cv2.bilateralFilter(processed, 9, 75, 75)
 
         # Enhanced contrast for handwriting
-        if self.config.get("preprocessing", {}).get("contrast_enhancement", True):
-            processed = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8)).apply(
-                processed
-            )
+        if self.config.get("preprocessing", {}).get(
+            "contrast_enhancement", True
+        ):
+            processed = cv2.createCLAHE(
+                clipLimit=3.0, tileGridSize=(8, 8)
+            ).apply(processed)
             # Additional contrast enhancement
             processed = cv2.convertScaleAbs(processed, alpha=1.2, beta=10)
 
         # Morphological operations for text enhancement
-        if self.config.get("preprocessing", {}).get("morphology_operations", True):
+        if self.config.get("preprocessing", {}).get(
+            "morphology_operations", True
+        ):
             kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
             processed = cv2.morphologyEx(processed, cv2.MORPH_CLOSE, kernel)
             processed = cv2.morphologyEx(processed, cv2.MORPH_OPEN, kernel)
@@ -460,7 +498,9 @@ class HybridProcessor:
                 .get("config", "--oem 3 --psm 6")
             )
             data = pytesseract.image_to_data(
-                image, config=tesseract_config, output_type=pytesseract.Output.DICT
+                image,
+                config=tesseract_config,
+                output_type=pytesseract.Output.DICT,
             )
 
             formatted_results = []
@@ -490,7 +530,8 @@ class HybridProcessor:
                         {
                             "text": text,
                             "bbox": bbox_rect,
-                            "confidence": confidence / 100.0,  # Normalize to 0-1
+                            "confidence": confidence
+                            / 100.0,  # Normalize to 0-1
                             "engine": "tesseract",
                         }
                     )
@@ -526,11 +567,15 @@ class HybridProcessor:
             overlapping = [detection]
             used_indices.add(i)
 
-            for j, other_detection in enumerate(all_detections[i + 1 :], i + 1):
+            for j, other_detection in enumerate(
+                all_detections[i + 1 :], i + 1
+            ):
                 if j in used_indices:
                     continue
 
-                if self._boxes_overlap(detection["bbox"], other_detection["bbox"]):
+                if self._boxes_overlap(
+                    detection["bbox"], other_detection["bbox"]
+                ):
                     overlapping.append(other_detection)
                     used_indices.add(j)
 
@@ -541,7 +586,9 @@ class HybridProcessor:
 
         return merged_regions
 
-    def _boxes_overlap(self, box1: Tuple, box2: Tuple, threshold: float = 0.3) -> bool:
+    def _boxes_overlap(
+        self, box1: Tuple, box2: Tuple, threshold: float = 0.3
+    ) -> bool:
         """Check if two bounding boxes overlap significantly"""
         x1_1, y1_1, x2_1, y2_1 = box1
         x1_2, y1_2, x2_2, y2_2 = box2
@@ -577,10 +624,14 @@ class HybridProcessor:
             return None
 
         # Choose best text based on confidence and length
-        best_detection = max(detections, key=lambda x: x["confidence"] * len(x["text"]))
+        best_detection = max(
+            detections, key=lambda x: x["confidence"] * len(x["text"])
+        )
 
         # Calculate average confidence
-        avg_confidence = sum(d["confidence"] for d in detections) / len(detections)
+        avg_confidence = sum(d["confidence"] for d in detections) / len(
+            detections
+        )
 
         # Merge bounding boxes
         all_x1 = [d["bbox"][0] for d in detections]
@@ -601,25 +652,98 @@ class HybridProcessor:
         )
 
     def _detect_region_type(self, detection: Dict, confidence: float) -> str:
-        """Detect if region contains handwritten or printed text"""
+        """Enhanced detection of handwritten vs printed text"""
         text = detection["text"]
+        bbox = detection["bbox"]
 
-        # Low confidence often indicates handwriting
-        if confidence < 0.5:
-            return "handwritten"
+        # Position-based rules (header/footer areas are usually printed)
+        if self._is_header_footer_area(bbox):
+            return "printed"
 
-        # Check for handwriting patterns
-        handwriting_indicators = [
-            len(text) < 15,  # Short text segments
-            any(char in text for char in "`~|"),  # OCR artifacts common in handwriting
-            confidence < 0.6
-            and len(text) > 5,  # Medium confidence with reasonable length
+        # Font regularity check
+        if self._is_regular_font_pattern(text, confidence):
+            return "printed"
+
+        # Calculate handwriting probability score
+        hw_score = self._calculate_handwriting_score(text, confidence, bbox)
+
+        return "handwritten" if hw_score > 0.6 else "printed"
+
+    def _is_header_footer_area(self, bbox) -> bool:
+        """Check if region is in header/footer area (usually printed)"""
+        x1, y1, x2, y2 = bbox
+        # Header area (top 15% of document) or footer area (bottom 10%)
+        return y1 < 400 or y1 > 2000  # Adjust based on document height
+
+    def _is_regular_font_pattern(self, text: str, confidence: float) -> bool:
+        """Check if text shows regular font characteristics"""
+        # High confidence + common words = likely printed
+        if confidence > 0.8 and len(text) > 3:
+            common_words = [
+                "KEMENTERIAN",
+                "REPUBLIK",
+                "INDONESIA",
+                "DIREKTORAT",
+                "Telepon",
+                "website",
+                "NOTA",
+                "DINAS",
+                "Sekretaris",
+            ]
+            if any(word in text for word in common_words):
+                return True
+
+        # All caps with high confidence = likely printed headers
+        if confidence > 0.7 and text.isupper() and len(text) > 5:
+            return True
+
+        # Common government/office terms (likely printed)
+        office_terms = [
+            "Biro",
+            "Hukum",
+            "Kementerian",
+            "Dalam",
+            "Negeri",
+            "Kepala",
         ]
+        if any(term in text for term in office_terms) and confidence > 0.3:
+            return True
 
-        if sum(handwriting_indicators) >= 2:
-            return "handwritten"
+        return False
 
-        return "printed"
+    def _calculate_handwriting_score(
+        self, text: str, confidence: float, bbox
+    ) -> float:
+        """Calculate probability that text is handwritten (0-1)"""
+        score = 0.0
+
+        # Confidence factor (lower confidence = more likely handwritten)
+        if confidence < 0.4:
+            score += 0.4
+        elif confidence < 0.6:
+            score += 0.2
+
+        # Text characteristics
+        if len(text) < 5:  # Short segments often handwritten
+            score += 0.2
+
+        # OCR artifacts common in handwriting
+        artifacts = ["`", "~", "|", "\x1c", "\x14"]
+        if any(char in text for char in artifacts):
+            score += 0.3
+
+        # Mixed alphanumeric (document numbers, dates)
+        if any(c.isdigit() for c in text) and any(c.isalpha() for c in text):
+            if len(text) < 20:  # Short mixed text likely handwritten
+                score += 0.2
+
+        # Numbers with special chars (dates, document numbers)
+        if any(char in text for char in ["/", "-", "."]) and any(
+            c.isdigit() for c in text
+        ):
+            score += 0.3
+
+        return min(score, 1.0)
 
     def _extract_text_from_regions(self, regions: List[TextRegion]) -> str:
         """Extract dan susun teks dari regions"""
@@ -630,7 +754,9 @@ class HybridProcessor:
         sorted_regions = sorted(regions, key=lambda r: (r.bbox[1], r.bbox[0]))
 
         # Extract text
-        texts = [region.text for region in sorted_regions if region.text.strip()]
+        texts = [
+            region.text for region in sorted_regions if region.text.strip()
+        ]
         return "\n".join(texts)
 
     def _merge_text_results(self, text_pages: List[str]) -> str:
@@ -643,7 +769,9 @@ class HybridProcessor:
             return text
 
         # Apply global OCR corrections
-        corrected_text, _ = self.pattern_manager.apply_ocr_corrections(text, "global")
+        corrected_text, _ = self.pattern_manager.apply_ocr_corrections(
+            text, "global"
+        )
 
         # Apply context rules
         context = {
@@ -738,7 +866,12 @@ class HybridProcessor:
             return "date"
 
         # Number context
-        if region.text.replace(".", "").replace("/", "").replace("-", "").isdigit():
+        if (
+            region.text.replace(".", "")
+            .replace("/", "")
+            .replace("-", "")
+            .isdigit()
+        ):
             return "number"
 
         # Mixed alphanumeric (document numbers)
@@ -767,7 +900,9 @@ class HybridProcessor:
             "handwritten_regions": len(
                 [r for r in regions if r.region_type == "handwritten"]
             ),
-            "printed_regions": len([r for r in regions if r.region_type == "printed"]),
+            "printed_regions": len(
+                [r for r in regions if r.region_type == "printed"]
+            ),
         }
 
     def _calculate_confidence_scores(
@@ -795,7 +930,9 @@ def create_processor(
     if config_path and Path(config_path).exists():
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                if config_path.endswith(".yaml") or config_path.endswith(".yml"):
+                if config_path.endswith(".yaml") or config_path.endswith(
+                    ".yml"
+                ):
                     config = yaml.safe_load(f)
                 else:
                     config = json.load(f)

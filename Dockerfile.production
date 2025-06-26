@@ -1,0 +1,62 @@
+# Multi-stage build for production
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Production stage
+FROM python:3.11-slim
+
+# Create non-root user
+RUN groupadd -r ocr && useradd -r -g ocr ocr
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-ind \
+    poppler-utils \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /home/ocr/.local
+
+# Copy application code
+COPY --chown=ocr:ocr . .
+
+# Create necessary directories
+RUN mkdir -p uploads models logs \
+    && chown -R ocr:ocr /app
+
+# Switch to non-root user
+USER ocr
+
+# Add local bin to PATH
+ENV PATH=/home/ocr/.local/bin:$PATH
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Production command
+CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--access-log"]
